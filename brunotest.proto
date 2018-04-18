@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.github.weijiangan.brunotest";
+option java_outer_classname = "BrunoTestProto";
+
+package brunotest;
+
+service App {
+  rpc Send(AuditEvent) returns (Response) {}
+  rpc Query(QueryParam) returns (AuditEvent) {}
+}
+
+message AuditEvent {
+  string client_ip = 1;
+  string server_ip = 2;
+  map<string, string> tags = 3;
+  required string message = 4;
+}
+
+message QueryParam {
+  string client_ip = 1;
+  string server_ip = 2;
+  string tags = 3;
+}
+
+message Response {
+  int32 status_code = 1;
+  string message = 2;
+  map<string, string> tags = 3;
+}
