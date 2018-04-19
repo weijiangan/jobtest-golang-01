@@ -13,8 +13,6 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"log"
-	"time"
 )
 
 const (
@@ -102,13 +100,13 @@ func TestDB_Model() {
 	if err != nil {
 		panic(err)
 	}
-	db.OnQueryProcessed(func(event *pg.QueryProcessedEvent) {
-		query, err := event.FormattedQuery()
-		if err != nil {
-			panic(err)
-		}
-		log.Printf("%s %s", time.Since(event.StartTime), query)
-	})
+	// db.OnQueryProcessed(func(event *pg.QueryProcessedEvent) {
+	// 	query, err := event.FormattedQuery()
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	log.Printf("%s %s", time.Since(event.StartTime), query)
+	// })
 }
 
 func createSchema(db *pg.DB, models []interface{}) error {
