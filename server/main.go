@@ -6,6 +6,9 @@ import (
 
 	"github.com/go-pg/pg"
 	"github.com/go-pg/pg/orm"
+	"github.com/grpc-ecosystem/go-grpc-middleware"
+	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	pb "github.com/weijiangan/bruno-test/brunotest"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -138,7 +141,15 @@ func main() {
 	if err != nil {
 		sugar.Fatalf("Failed to listen port %s: %v", port, err)
 	}
-	s := grpc.NewServer()
+	s := grpc.NewServer(
+		grpc_middleware.WithUnaryServerChain(
+			grpc_ctxtags.UnaryServerInterceptor(),
+			grpc_zap.UnaryServerInterceptor(logger),
+		),
+		grpc_middleware.WithStreamServerChain(
+			grpc_ctxtags.StreamServerInterceptor(),
+			grpc_zap.StreamServerInterceptor(logger),
+		))
 	pb.RegisterAppServer(s, &server{})
 	reflection.Register(s)
 	sugar.Infof("Server listening: http://localhost%s", port)
