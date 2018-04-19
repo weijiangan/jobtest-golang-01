@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"net"
 
 	"github.com/go-pg/pg"
@@ -65,7 +64,6 @@ func (s *server) Query(in *pb.QueryParam, stream pb.App_QueryServer) error {
 		sugar.Fatalf("%v", err)
 		return err
 	}
-	fmt.Printf("%+v\n", events)
 
 	for _, event := range events {
 		res := &pb.AuditEvent{
