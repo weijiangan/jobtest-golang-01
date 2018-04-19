@@ -94,7 +94,7 @@ func TestDB_Model() {
 		Password: "123456",
 		Database: "brunotest",
 	})
-	err := createSchema(db, []interface{}{&AuditEvent{}})
+	err := createSchema(db, []interface{}{&AuditEvent{}, &Log{}})
 	if err != nil {
 		panic(err)
 	}
@@ -119,16 +119,25 @@ func createSchema(db *pg.DB, models []interface{}) error {
 	return nil
 }
 
+func logToDb(e zapcore.Entry) error {
+	entry := &Log{Log: e}
+	if err := db.Insert(entry); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func main() {
-	logger, _ := zap.NewProduction()
+	TestDB_Model()
+	defer db.Close()
+	logger, _ := zap.NewProduction(zap.Hooks(logToDb))
 	defer logger.Sync()
 	sugar = logger.Sugar()
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		sugar.Fatalf("Failed to listen port %s: %v", port, err)
 	}
-	TestDB_Model()
-	defer db.Close()
 	s := grpc.NewServer()
 	pb.RegisterAppServer(s, &server{})
 	reflection.Register(s)
