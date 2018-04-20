@@ -19,8 +19,12 @@ const (
 
 func main() {
 	if (len(os.Args) != 6 || os.Args[1] != "-s") && !(len(os.Args) == 5 && os.Args[1] == "-q") {
-		fmt.Println("Usage: client [CLIENT_IP] [SERVER_IP] TAGS MESSAGE\n\n" +
-			"Where TAGS is a JSON key/value pair")
+		fmt.Println("Usage: client -option args ...\n\n" +
+			"Options:\n" +
+			"\t-s [CLIENT_IP] [SERVER_IP] TAGS MESSAGE\n" +
+			"\t\tSend an audit event where TAGS is a JSON key/value pair.\n\n" +
+			"\t-q [CLIENT_IP] [SERVER_IP] TAGS\n" +
+			"\t\tQuery for audit event based on the supplied parameters.")
 		return
 	}
 
