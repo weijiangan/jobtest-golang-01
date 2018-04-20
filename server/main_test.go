@@ -1,0 +1,70 @@
+package main
+
+import (
+	"testing"
+
+	"github.com/go-pg/pg"
+	pb "github.com/weijiangan/bruno-test/brunotest"
+	"golang.org/x/net/context"
+)
+
+func TestSend(t *testing.T) {
+	db = pg.Connect(&pg.Options{
+		User:     "postgres",
+		Password: "123456",
+		Database: "brunotest",
+	})
+	if err := createSchema(db, []interface{}{&AuditEvent{}, &Log{}}); err != nil {
+		panic(err)
+	}
+
+	s := server{}
+
+	cases := []struct {
+		in   pb.AuditEvent
+		want pb.Response
+	}{
+		{
+			pb.AuditEvent{
+				Tag:     map[string]string{"key1": "value1"},
+				Message: "Test1",
+			},
+			pb.Response{StatusCode: 200, Message: "OK"},
+		},
+		{
+			pb.AuditEvent{
+				ClientIp: "201.16.204.114",
+				Tag:      map[string]string{"key1": "value1", "key2": "value2"},
+				Message:  "Test2",
+			},
+			pb.Response{StatusCode: 200, Message: "OK"},
+		},
+		{
+			pb.AuditEvent{
+				ServerIp: "100.92.64.121",
+				Tag:      map[string]string{"key3": "value3"},
+				Message:  "Test3",
+			},
+			pb.Response{StatusCode: 200, Message: "OK"},
+		},
+		{
+			pb.AuditEvent{
+				ClientIp: "249.208.100.209",
+				ServerIp: "6.103.104.214",
+				Tag:      map[string]string{"key3": "value3", "key4": "value4"},
+				Message:  "Test4",
+			},
+			pb.Response{StatusCode: 200, Message: "OK"},
+		},
+	}
+	for _, c := range cases {
+		got, err := s.Send(context.Background(), &c.in)
+		if err != nil {
+			t.Errorf("Send(%+v) got unexpected error: %v", c.in, err)
+		}
+		if *got != c.want {
+			t.Errorf("Send(%+v) == %+v, want %+v", c.in, got, c.want)
+		}
+	}
+
+}
