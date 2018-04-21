@@ -5,7 +5,9 @@ import (
 	"testing"
 
 	"github.com/go-pg/pg"
+	"github.com/golang/mock/gomock"
 	pb "github.com/weijiangan/bruno-test/brunotest"
+	querymock "github.com/weijiangan/bruno-test/mock_bruno-test"
 	"golang.org/x/net/context"
 )
 
@@ -83,6 +85,46 @@ func TestSend(t *testing.T) {
 		}
 	}
 
+}
+
+func TestQueryClient(t *testing.T) {
+	db = pg.Connect(&pg.Options{
+		User:     "postgres",
+		Password: "123456",
+		Database: "brunotest",
+	})
+	if err := createSchema(db, []interface{}{&AuditEvent{}, &Log{}}); err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	msg := &pb.AuditEvent{Tag: map[string]string{"boruto": "stream"}}
+
+	// Create mock for the stream returned by Query
+	mockStream := querymock.NewMockApp_QueryClient(ctrl)
+	// set expectation on sending.
+	mockStream.EXPECT().Recv().Return(msg, nil)
+
+	queryClient := querymock.NewMockAppClient(ctrl)
+	queryClient.EXPECT().Query(
+		gomock.Any(),
+		gomock.Any(),
+	).Return(mockStream, nil)
+
+	stream, err := queryClient.Query(context.Background(), &pb.QueryParam{
+		Tag: map[string]string{"foo": "bar"},
+	})
+	if err != nil {
+		t.Fatalf("TestQuery() got unexpected error: %v", err)
+	}
+
+	got, err := stream.Recv()
+	if err != nil {
+		t.Fatalf("TestQuery() got unexpected error receiving stream: %v", err)
+	}
+	t.Logf("%v\n", got)
 }
 
 func TestNullStringify(t *testing.T) {
