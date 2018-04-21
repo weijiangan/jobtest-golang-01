@@ -149,7 +149,7 @@ func loadConfig() error {
 }
 
 func loadLogger() {
-	logger, _ := zap.NewProduction(zap.Hooks(logToDb))
+	logger, _ = zap.NewProduction(zap.Hooks(logToDb))
 	defer logger.Sync()
 	sugar = logger.Sugar()
 }
