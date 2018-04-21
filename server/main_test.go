@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/go-pg/pg"
@@ -75,4 +76,21 @@ func TestSend(t *testing.T) {
 		}
 	}
 
+}
+
+func TestNullStringify(t *testing.T) {
+	cases := []struct {
+		in   string
+		want sql.NullString
+	}{
+		{"", sql.NullString{}},
+		{"test string 123", sql.NullString{String: "test string 123", Valid: true}},
+	}
+
+	for _, c := range cases {
+		got := NullStringify(c.in)
+		if got != c.want {
+			t.Errorf("NullStringify(%q) == %+v, want %+v", c.in, got, c.want)
+		}
+	}
 }
