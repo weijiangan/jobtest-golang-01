@@ -101,3 +101,28 @@ func TestNullStringify(t *testing.T) {
 		}
 	}
 }
+
+func benchmarkSend(input pb.AuditEvent, b *testing.B) {
+	TestDB_Model()
+	defer db.Close()
+	tx, err := db.Begin()
+	if err != nil {
+		b.Errorf("Unable to begin transaction mode: %v", err)
+	}
+	defer tx.Rollback()
+	dbInsert = tx.Insert
+	s := server{}
+
+	for n := 0; n < b.N; n++ {
+		s.Send(context.Background(), &input)
+	}
+}
+
+func BenchmarkSend(b *testing.B) {
+	benchmarkSend(pb.AuditEvent{
+		ClientIp: "249.208.100.209",
+		ServerIp: "6.103.104.214",
+		Tag:      map[string]string{"key3": "value3", "key4": "value4"},
+		Message:  "Test4",
+	}, b)
+}
