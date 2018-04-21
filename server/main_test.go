@@ -9,16 +9,23 @@ import (
 	"golang.org/x/net/context"
 )
 
-func TestSend(t *testing.T) {
-	db = pg.Connect(&pg.Options{
-		User:     "postgres",
-		Password: "123456",
-		Database: "brunotest",
-	})
-	if err := createSchema(db, []interface{}{&AuditEvent{}, &Log{}}); err != nil {
-		panic(err)
-	}
+func TestTestDB_Model(t *testing.T) {
+	TestDB_Model()
+	defer db.Close()
 
+	var got int
+	_, err := db.QueryOne(pg.Scan(&got), "SELECT 1")
+	if err != nil {
+		t.Errorf("TestDB_Model() failed with error: %v", err)
+	}
+	if got != 1 {
+		t.Errorf("TestDB_Model() queried 'SELECT 1', got %d", got)
+	}
+}
+
+func TestSend(t *testing.T) {
+	TestDB_Model()
+	defer db.Close()
 	s := server{}
 
 	cases := []struct {
