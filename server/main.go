@@ -23,6 +23,7 @@ const (
 
 var (
 	db       *pg.DB
+	logger   *zap.Logger
 	sugar    *zap.SugaredLogger
 	dbInsert func(...interface{}) error
 )
@@ -133,12 +134,16 @@ func logToDb(e zapcore.Entry) error {
 	return nil
 }
 
-func main() {
-	TestDB_Model()
-	defer db.Close()
+func loadLogger() {
 	logger, _ := zap.NewProduction(zap.Hooks(logToDb))
 	defer logger.Sync()
 	sugar = logger.Sugar()
+}
+
+func main() {
+	loadLogger()
+	TestDB_Model()
+	defer db.Close()
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		sugar.Fatalf("Failed to listen port %s: %v", port, err)
