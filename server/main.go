@@ -22,8 +22,9 @@ const (
 )
 
 var (
-	db    *pg.DB
-	sugar *zap.SugaredLogger
+	db       *pg.DB
+	sugar    *zap.SugaredLogger
+	dbInsert func(...interface{}) error
 )
 
 type server struct{}
@@ -48,7 +49,7 @@ func (s *server) Send(ctx context.Context, in *pb.AuditEvent) (*pb.Response, err
 		Tag:      in.Tag,
 		Message:  in.Message,
 	}
-	err := db.Insert(event)
+	err := dbInsert(event)
 	if err != nil {
 		return &pb.Response{StatusCode: 400, Message: "Bad Request"}, err
 	}
@@ -101,6 +102,7 @@ func TestDB_Model() {
 	if err != nil {
 		panic(err)
 	}
+	dbInsert = db.Insert
 	// db.OnQueryProcessed(func(event *pg.QueryProcessedEvent) {
 	// 	query, err := event.FormattedQuery()
 	// 	if err != nil {

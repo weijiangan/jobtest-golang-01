@@ -57,6 +57,14 @@ func TestSend(t *testing.T) {
 			pb.Response{StatusCode: 200, Message: "OK"},
 		},
 	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		t.Errorf("Unable to begin transaction mode: %v", err)
+	}
+	defer tx.Rollback()
+	dbInsert = tx.Insert
+
 	for _, c := range cases {
 		got, err := s.Send(context.Background(), &c.in)
 		if err != nil {
