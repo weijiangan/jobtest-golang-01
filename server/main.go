@@ -154,7 +154,7 @@ func main() {
 		))
 	pb.RegisterAppServer(s, &server{})
 	reflection.Register(s)
-	sugar.Infof("Server listening: http://localhost%s", port)
+	sugar.Infof("Server started listening at localhost%s", port)
 	if err := s.Serve(lis); err != nil {
 		sugar.Fatalf("Failed to serve: %v", err)
 	}
