@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"net"
 
 	"github.com/go-pg/pg"
@@ -9,6 +10,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	"github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	"github.com/spf13/viper"
 	pb "github.com/weijiangan/bruno-test/brunotest"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -94,10 +96,13 @@ func NullStringify(s string) sql.NullString {
 }
 
 func TestDB_Model() {
+	if err := loadConfig(); err != nil {
+		panic(fmt.Errorf("Fatal error: %s \n", err))
+	}
 	db = pg.Connect(&pg.Options{
-		User:     "postgres",
-		Password: "123456",
-		Database: "brunotest",
+		User:     viper.GetString("user"),
+		Password: viper.GetString("password"),
+		Database: viper.GetString("database"),
 	})
 	err := createSchema(db, []interface{}{&AuditEvent{}, &Log{}})
 	if err != nil {
@@ -131,6 +136,15 @@ func logToDb(e zapcore.Entry) error {
 		return err
 	}
 
+	return nil
+}
+
+func loadConfig() error {
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	if err := viper.ReadInConfig(); err != nil {
+		return err
+	}
 	return nil
 }
 
